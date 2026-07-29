@@ -7,10 +7,6 @@
 --  Date: July 29, 2026
 --
 
-with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Vectors;
-with Ada.Numerics.Discrete_Random;
-
 package Page_Replacement is
 
    -- ===================================================================
@@ -29,23 +25,23 @@ package Page_Replacement is
    -- Page state combining reference and modified bits
    type Page_State is record
       Ref : Reference_Bit := Unreferenced;
-      Modified : Modified_Bit := Clean;  -- Changed from "Mod" to "Modified"
+      Modified : Modified_Bit := Clean;  -- FIXED: was "Mod" (reserved word)
    end record;
 
    -- Page Table Entry type
    type Page_Table_Entry is record
       Page : Page_Number;
       State : Page_State;
-      Last_Used : Page_Count := 0;  -- For LRU, Aging, etc.
-      Frequency : Page_Count := 0; -- For NFU
+      Last_Used : Page_Count := 0;
+      Frequency : Page_Count := 0;
       In_Memory : Boolean := False;
    end record;
 
-   -- Page table type (dynamic array)
-   type Page_Table is array (Frame_Number range <>) of Page_Table_Entry;
+   -- Page table type (dynamic array) - FIXED: renamed to avoid shadowing
+   type Page_Table_Type is array (Frame_Number range <>) of Page_Table_Entry;
 
-   -- Reference string type (sequence of page references)
-   type Reference_String is array (Positive range <>) of Page_Number;
+   -- Reference string type (sequence of page references) - FIXED: renamed
+   type Reference_String_Type is array (Positive range <>) of Page_Number;
 
    -- Algorithm types enumeration
    type Algorithm_Type is (
@@ -59,12 +55,10 @@ package Page_Replacement is
       NFU,
       Aging,
       MRU,
-      -- Clock variants
       GCLOCK,
       Clock_Pro,
       WSClock,
       CAR,
-      -- LRU variants
       LRU_K,
       ARC,
       TwoQ
@@ -90,20 +84,18 @@ package Page_Replacement is
    -- ALGORITHM PARAMETERS
    -- ===================================================================
 
-   -- Parameters for algorithm variants
    type Algorithm_Parameters is record
       Mode : Replacement_Mode := Global;
       Preclean : Precleaning_Policy := None;
-      K_Value : Positive := 1;  -- For LRU-K
-      Clock_Size : Frame_Number := 100; -- For Clock variants
-      Aging_Counter_Size : Positive := 8; -- For Aging algorithm
+      K_Value : Positive := 1;
+      Clock_Size : Frame_Number := 100;
+      Aging_Counter_Size : Positive := 8;
    end record;
 
    -- ===================================================================
    -- STATISTICS
    -- ===================================================================
 
-   -- Statistics for algorithm performance
    type Algorithm_Statistics is record
       Page_Faults : Page_Count := 0;
       Page_Replacements : Page_Count := 0;
@@ -115,15 +107,13 @@ package Page_Replacement is
    -- MAIN PROCEDURES
    -- ===================================================================
 
-   -- Initialize page table with given number of frames
    procedure Initialize (
-      Page_Table : out Page_Table;
+      The_Page_Table : out Page_Table_Type;
       Num_Frames : Frame_Number
    );
 
-   -- Process a single page reference for a specific algorithm
    procedure Process_Reference (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Algorithm : Algorithm_Type;
       Params : Algorithm_Parameters;
@@ -131,9 +121,8 @@ package Page_Replacement is
       Current_Time : Page_Count
    );
 
-   -- Simulate a complete reference string with a specific algorithm
    procedure Simulate (
-      Reference_String : Reference_String;
+      The_References : Reference_String_Type;
       Num_Frames : Frame_Number;
       Algorithm : Algorithm_Type;
       Params : Algorithm_Parameters := Algorithm_Parameters'(Mode => Global, others => <>);
@@ -144,157 +133,75 @@ package Page_Replacement is
    -- ALGORITHM-SPECIFIC PROCEDURES
    -- ===================================================================
 
-   -- FIFO Algorithm
    procedure FIFO_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- Optimal Algorithm (requires future reference string)
    procedure Optimal_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
-      Future_References : Reference_String;
+      Future_References : Reference_String_Type;
       Current_Index : Positive;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- LRU Algorithm
    procedure LRU_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- Second Chance Algorithm
    procedure Second_Chance_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- Clock Algorithm
    procedure Clock_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count;
       Hand : in out Frame_Number
    );
 
-   -- NRU Algorithm
    procedure NRU_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- Random Algorithm
    procedure Random_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- NFU Algorithm
    procedure NFU_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
    );
 
-   -- Aging Algorithm
    procedure Aging_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count;
       Counter_Size : Positive
    );
 
-   -- MRU Algorithm
    procedure MRU_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count
-   );
-
-   -- ===================================================================
-   -- CLOCK VARIANTS
-   -- ===================================================================
-
-   -- GCLOCK Algorithm
-   procedure GCLOCK_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      Hand : in out Frame_Number
-   );
-
-   -- Clock-Pro Algorithm
-   procedure Clock_Pro_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      Hand : in out Frame_Number;
-      History : in out Page_Table
-   );
-
-   -- WSClock Algorithm
-   procedure WSClock_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      Hand : in out Frame_Number;
-      Working_Set_Size : Frame_Number
-   );
-
-   -- CAR Algorithm
-   procedure CAR_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      Hand : in out Frame_Number
-   );
-
-   -- ===================================================================
-   -- LRU VARIANTS
-   -- ===================================================================
-
-   -- LRU-K Algorithm
-   procedure LRU_K_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      K : Positive
-   );
-
-   -- ARC Algorithm (Adaptive Replacement Cache)
-   procedure ARC_Replace (
-      Page_Table : in out Page_Table;
-      Reference : Page_Number;
-      Stats : in out Algorithm_Statistics;
-      Current_Time : Page_Count;
-      P : Positive  -- Cache size parameter
-   );
-
-   -- 2Q Algorithm
-   procedure TwoQ_Replace (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Reference : Page_Number;
       Stats : in out Algorithm_Statistics;
       Current_Time : Page_Count
@@ -304,107 +211,85 @@ package Page_Replacement is
    -- HELPER FUNCTIONS
    -- ===================================================================
 
-   -- Check if page is in memory
    function Is_In_Memory (
-      Page_Table : Page_Table;
+      The_Page_Table : Page_Table_Type;
       Page : Page_Number
    ) return Boolean;
 
-   -- Find frame containing a specific page
    function Find_Frame (
-      Page_Table : Page_Table;
+      The_Page_Table : Page_Table_Type;
       Page : Page_Number
    ) return Frame_Number;
 
-   -- Find a free frame (not in memory)
    function Find_Free_Frame (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using FIFO
    function Find_FIFO_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using LRU
    function Find_LRU_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using MRU
    function Find_MRU_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using NRU classification
    function Find_NRU_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using NFU
    function Find_NFU_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim frame using Random
    function Find_Random_Victim (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Frame_Number;
 
-   -- Find victim for Optimal algorithm (requires future references)
    function Find_Optimal_Victim (
-      Page_Table : Page_Table;
-      Future_References : Reference_String;
+      The_Page_Table : Page_Table_Type;
+      Future_References : Reference_String_Type;
       Current_Index : Positive
    ) return Frame_Number;
 
-   -- Update reference bits (for Clock, Second-Chance, etc.)
    procedure Update_Reference_Bits (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Current_Time : Page_Count
    );
 
-   -- Clear reference bits periodically (for NRU)
    procedure Clear_Reference_Bits (
-      Page_Table : in out Page_Table
+      The_Page_Table : in out Page_Table_Type
    );
 
-   -- Preclean dirty pages
    procedure Preclean (
-      Page_Table : in out Page_Table;
+      The_Page_Table : in out Page_Table_Type;
       Policy : Precleaning_Policy;
       Stats : in out Algorithm_Statistics
    );
 
    -- ===================================================================
-   -- VALIDATION FUNCTIONS
+   -- VALIDATION & UTILITY
    -- ===================================================================
 
-   -- Validate page table
    function Is_Valid_Page_Table (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    ) return Boolean;
 
-   -- Validate reference string
    function Is_Valid_Reference_String (
-      Ref_String : Reference_String
+      The_References : Reference_String_Type
    ) return Boolean;
 
-   -- ===================================================================
-   -- UTILITY FUNCTIONS
-   -- ===================================================================
-
-   -- Get algorithm name as string
    function Algorithm_Name (
       Alg : Algorithm_Type
    ) return String;
 
-   -- Print page table state (for debugging)
    procedure Print_Page_Table (
-      Page_Table : Page_Table
+      The_Page_Table : Page_Table_Type
    );
 
-   -- Print statistics
    procedure Print_Statistics (
       Stats : Algorithm_Statistics;
       Algorithm : Algorithm_Type
