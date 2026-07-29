@@ -1,6 +1,7 @@
 --  page_replacement.gpr
 --
 --  GNAT Project File for Page Replacement Algorithms
+--  Fixed version compatible with gnatmake
 --
 --  Author: Robert Boettcher
 --  Date: July 29, 2026
@@ -17,8 +18,14 @@ project Page_Replacement is
    -- Executable directory
    for Exec_Dir use "bin";
 
-   -- Main program (if you want to create a test driver)
-   -- for Main use ("main.adb");
+   -- Compiler options (standard GNAT attributes)
+   for Compiler ("Ada") use ("gnatmake");
+
+   -- If you have a main program, uncomment this:
+   -- for Main use ("test_page_replacement.adb");
+
+   -- Standard Ada version (2012 is widely supported)
+   for Ada_Standard use "Ada2012";
 
    -- Source files
    for Source_Files use (
@@ -26,33 +33,19 @@ project Page_Replacement is
       "page_replacement.adb"
    );
 
-   -- Compiler options
-   for Compiler ("ada") use ("gnatmake");
-
-   -- Optimization level
-   for Optimization_Level ("ada") use "2";
-
-   -- Debug information
-   for Debug_Info_In_Libraries use "true";
-
-   -- Ada standard
-   for Ada_Standard use "Ada2022";
-
-   -- Package options
+   -- Package to handle compiler switches
    package Compiler is
-      for Default_Switches ("ada") use (
-         "-gnatN",  -- No assert pragma checks
-         "-gnato",  -- Optimization
-         "-gnatp",  -- Suppress info messages
-         "-gnatwe"  -- Warnings as errors
+      for Default_Switches ("Ada") use (
+         "-gnatN",   -- No assert pragma checks
+         "-gnato",   -- Optimization
+         "-gnatp",   -- Suppress info messages
+         "-gnatwe"   -- Treat warnings as errors
       );
    end Compiler;
 
    -- Linker options
    package Linker is
-      for Default_Switches ("ada") use (
-         "-static"
-      );
+      for Default_Switches ("Ada") use ("-static");
    end Linker;
 
 end Page_Replacement;
