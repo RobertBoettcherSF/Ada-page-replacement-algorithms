@@ -1,4 +1,6 @@
 --  page_replacement.gpr
 project Page_Replacement is
    for Source_Dirs use (".");
+   for Object_Dir use ("../obj");
+   for Exec_Dir use ("../bin");
 end Page_Replacement;
