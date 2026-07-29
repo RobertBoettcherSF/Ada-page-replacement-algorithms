@@ -29,7 +29,7 @@ package Page_Replacement is
    -- Page state combining reference and modified bits
    type Page_State is record
       Ref : Reference_Bit := Unreferenced;
-      Mod : Modified_Bit := Clean;
+      Modified : Modified_Bit := Clean;  -- Changed from "Mod" to "Modified"
    end record;
 
    -- Page Table Entry type
