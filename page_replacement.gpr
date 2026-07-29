@@ -1,51 +1,9 @@
 --  page_replacement.gpr
---
---  GNAT Project File for Page Replacement Algorithms
---  Fixed version compatible with gnatmake
---
---  Author: Robert Boettcher
---  Date: July 29, 2026
+--  Minimal GNAT Project File - Compatible with all GNAT versions
 --
 
 project Page_Replacement is
-
-   -- Source directories
    for Source_Dirs use ("src");
-
-   -- Object directory
-   for Object_Dir use "obj";
-
-   -- Executable directory
-   for Exec_Dir use "bin";
-
-   -- Compiler options (standard GNAT attributes)
-   for Compiler ("Ada") use ("gnatmake");
-
-   -- If you have a main program, uncomment this:
-   -- for Main use ("test_page_replacement.adb");
-
-   -- Standard Ada version (2012 is widely supported)
-   for Ada_Standard use "Ada2012";
-
-   -- Source files
-   for Source_Files use (
-      "page_replacement.ads",
-      "page_replacement.adb"
-   );
-
-   -- Package to handle compiler switches
-   package Compiler is
-      for Default_Switches ("Ada") use (
-         "-gnatN",   -- No assert pragma checks
-         "-gnato",   -- Optimization
-         "-gnatp",   -- Suppress info messages
-         "-gnatwe"   -- Treat warnings as errors
-      );
-   end Compiler;
-
-   -- Linker options
-   package Linker is
-      for Default_Switches ("Ada") use ("-static");
-   end Linker;
-
+   for Object_Dir use ("obj");
+   for Exec_Dir use ("bin");
 end Page_Replacement;
